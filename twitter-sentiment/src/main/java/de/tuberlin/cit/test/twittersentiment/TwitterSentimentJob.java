@@ -70,7 +70,7 @@ public class TwitterSentimentJob {
 
 		DataStream<Tuple3<Long, String, StringValue>> analyzedTweets = tweetStream
                 .flatMap(new HotTopicsRecognitionTask(topCount, historySize, topTopicsWindow))
-                .flatMap(new HotTopicsMergerTask(topTopicsTimeout)).setParallelism(1)
+                .flatMap(new HotTopicsMergerTask(topTopicsTimeout)).setParallelism(1).broadcast()
 				.connect(tweetStream)
 				.flatMap(new CoFilterTask())
 				.map(new SentimentAnalysisTask());

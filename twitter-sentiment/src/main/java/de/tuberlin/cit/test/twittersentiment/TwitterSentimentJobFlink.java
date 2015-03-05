@@ -75,6 +75,7 @@ public class TwitterSentimentJobFlink {
 		// topTweets.flatten().printToErr();
 
 		DataStream<Tuple3<Long, String, StringValue>> analyzedTweets = topTweets.flatten()
+				.broadcast()
 				.connect(tweetStream)
 				.flatMap(new CoFilterTask())
 				.map(new SentimentAnalysisTask());
