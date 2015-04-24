@@ -5,7 +5,7 @@ import de.tuberlin.cit.test.queuebehavior.TestQueueBehaviorJobProfile.LoadGenera
 import de.tuberlin.cit.test.queuebehavior.record.NumberRecord;
 import de.tuberlin.cit.test.queuebehavior.util.BlockingRandomNumberSource;
 import de.tuberlin.cit.test.queuebehavior.util.BlockingRandomNumberSource.TimestampedNumber;
-import org.apache.flink.streaming.api.function.source.RichSourceFunction;
+import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class NumberSource extends RichSourceFunction<NumberRecord> {
 //						getCurrentNumberOfSubtasks(), getIndexInSubtaskGroup()));
 
     @Override
-    public void invoke(Collector<NumberRecord> out) throws Exception {
+    public void run(Collector<NumberRecord> out) throws Exception {
         LoadGenerationProfile profile = TestQueueBehaviorJobProfile.PROFILES
                 .get(this.profileName)
                 .loadGenProfile;
@@ -50,4 +50,6 @@ public class NumberSource extends RichSourceFunction<NumberRecord> {
         }
     }
 
+	@Override
+	public void cancel() {}
 }

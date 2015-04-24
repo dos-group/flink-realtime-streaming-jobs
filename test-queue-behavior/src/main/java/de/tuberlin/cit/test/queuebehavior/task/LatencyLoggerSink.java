@@ -3,7 +3,7 @@ package de.tuberlin.cit.test.queuebehavior.task;
 import de.tuberlin.cit.test.queuebehavior.record.NumberRecord;
 import de.tuberlin.cit.test.queuebehavior.util.LatencyLog;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.function.sink.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 public class LatencyLoggerSink extends RichSinkFunction<NumberRecord> {
 
