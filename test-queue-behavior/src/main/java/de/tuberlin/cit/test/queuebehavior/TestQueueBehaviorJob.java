@@ -35,10 +35,12 @@ public class TestQueueBehaviorJob {
 			return;
 		}
 
-		String jmHost = args[0].split(":")[0];
-		int jmPort = -1;
-        if (jmHost.contains(":"))
-            jmPort = Integer.parseInt(args[0].split(":")[1]);
+		String jmHost = args[0];
+		int jmPort = ConfigConstants.DEFAULT_JOB_MANAGER_IPC_PORT;
+		if (jmHost.contains(":")) {
+			jmHost = args[0].split(":")[0];
+			jmPort = Integer.parseInt(args[0].split(":")[1]);
+		}
 
 		TestQueueBehaviorJobProfile profile = TestQueueBehaviorJobProfile.PROFILES.get(args[1]);
 		if (profile == null) {
