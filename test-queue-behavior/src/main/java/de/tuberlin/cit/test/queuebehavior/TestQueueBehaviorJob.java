@@ -62,12 +62,8 @@ public class TestQueueBehaviorJob {
                 System.exit(1);
             }
 
-            String uHome = System.getProperty("user.home");
             env = StreamExecutionEnvironment.createRemoteEnvironment(
-                    jmHost, jmPort,
-                    "target/test-queue-behavior-git.jar",
-                    uHome + "/.m2/repository/org/slf4j/slf4j-log4j12/1.6.5/slf4j-log4j12-1.6.5.jar",
-                    uHome + "/.m2/repository/org/slf4j/slf4j-api/1.6.5/slf4j-api-1.6.5.jar");
+                    jmHost, jmPort, "target/test-queue-behavior-git.jar");
         }
 
         // TODO: Use specific cluster/jobManager endpoint
