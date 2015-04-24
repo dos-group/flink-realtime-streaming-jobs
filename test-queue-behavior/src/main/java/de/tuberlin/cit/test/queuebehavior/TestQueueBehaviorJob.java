@@ -1,9 +1,13 @@
 package de.tuberlin.cit.test.queuebehavior;
 
+import de.tuberlin.cit.test.queuebehavior.record.NumberRecord;
 import de.tuberlin.cit.test.queuebehavior.task.LatencyLoggerSink;
 import de.tuberlin.cit.test.queuebehavior.task.NumberSource;
 import de.tuberlin.cit.test.queuebehavior.task.PrimeNumberTestTask;
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,12 +70,18 @@ public class TestQueueBehaviorJob {
                     jmHost, jmPort, "target/test-queue-behavior-git.jar");
         }
 
-        // TODO: Use specific cluster/jobManager endpoint
-        // TODO: taskDopPerInstance? elasticSettings?
-        // TODO: set constraints
-        env.addSource(new NumberSource(profile.name)).setParallelism(profile.paraProfile.outerTaskDop)
-            .map(new PrimeNumberTestTask()).setParallelism(profile.paraProfile.innerTaskDop)
-            .addSink(new LatencyLoggerSink(latencyLogfile)).setParallelism(profile.paraProfile.outerTaskDop);
+
+		// optional: env.setQosStatisticsReportInterval(12345);
+		env.getStreamGraph().setChaining(false);
+
+		// TODO: Use specific cluster/jobManager endpoint
+		// TODO: taskDopPerInstance? elasticSettings?
+		env.addSource(new NumberSource(profile.name)).setParallelism(profile.paraProfile.outerTaskDop)
+				.map(new PrimeNumberTestTask()).setParallelism(profile.paraProfile.innerTaskDop)
+				.beginLatencyConstraint(20)
+				.flatMap(new DummyFlatMapper()).setParallelism(profile.paraProfile.innerTaskDop)
+				.finishLatencyConstraint()
+				.addSink(new LatencyLoggerSink(latencyLogfile)).setParallelism(profile.paraProfile.outerTaskDop);
 
         env.execute("Test Queue Behavior job");
     }
@@ -81,5 +91,12 @@ public class TestQueueBehaviorJob {
         System.err.println("Run local test cluster with ,,local'' as jobmanager host and empty port.");
 		System.err.printf("Available profiles: %s\n",
 				Arrays.toString(TestQueueBehaviorJobProfile.PROFILES.keySet().toArray()));
-	}	
+	}
+
+	public static class DummyFlatMapper implements FlatMapFunction<NumberRecord, NumberRecord> {
+		@Override
+		public void flatMap(NumberRecord value, Collector<NumberRecord> out) throws Exception {
+			out.collect(value);
+		}
+	}
 }
