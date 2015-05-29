@@ -70,11 +70,11 @@ public class TestQueueBehaviorJobComplex {
             log.info("Running in remote mode. Creating jar...");
 
             // Create jar file for job deployment
-//            Process p = Runtime.getRuntime().exec("mvn clean package");
-//            if (p.waitFor() != 0) {
-//                System.out.println("Failed to build test-queue-behavior.jar");
-//                System.exit(1);
-//            }
+            Process p = Runtime.getRuntime().exec("mvn clean package");
+            if (p.waitFor() != 0) {
+                System.out.println("Failed to build test-queue-behavior.jar");
+                System.exit(1);
+            }
 
             env = StreamExecutionEnvironment.createRemoteEnvironment(
                     jmHost, jmPort, "target/test-queue-behavior-git.jar");
