@@ -19,6 +19,8 @@ public class NumberSource extends RichSourceFunction<NumberRecord> {
 
     private final String profileName;
 
+    private volatile boolean isRunning = false;
+
     public NumberSource(String profileName) {
         this.profileName = profileName;
     }
@@ -32,17 +34,19 @@ public class NumberSource extends RichSourceFunction<NumberRecord> {
 //				new OpportunisticRoundRobinChannelSelector<NumberRecord>(
 //						getCurrentNumberOfSubtasks(), getIndexInSubtaskGroup()));
 
+
     @Override
-    public void run(Collector<NumberRecord> out) throws Exception {
+    public void run(Object checkpointLock, Collector<NumberRecord> out) throws Exception {
         LoadGenerationProfile profile = TestQueueBehaviorJobProfile.PROFILES
                 .get(this.profileName)
                 .loadGenProfile;
 
         BlockingRandomNumberSource rndSource = new BlockingRandomNumberSource(profile);
         TimestampedNumber numHolder = new TimestampedNumber();
+        this.isRunning = true;
 
         TimestampedNumber toEmit;
-        while ((toEmit = rndSource.createRandomNumberBlocking(numHolder)) != null) {
+        while (isRunning && (toEmit = rndSource.createRandomNumberBlocking(numHolder)) != null) {
             NumberRecord record = new NumberRecord();
             record.setNumber(toEmit.number);
             record.setTimestamp(toEmit.timestamp);
@@ -51,5 +55,7 @@ public class NumberSource extends RichSourceFunction<NumberRecord> {
     }
 
 	@Override
-	public void cancel() {}
+	public void cancel() {
+        this.isRunning = false;
+    }
 }
