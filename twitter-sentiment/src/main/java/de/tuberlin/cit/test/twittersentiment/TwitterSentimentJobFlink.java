@@ -3,7 +3,13 @@ package de.tuberlin.cit.test.twittersentiment;
 import de.tuberlin.cit.test.twittersentiment.profile.TwitterSentimentJobProfile;
 import de.tuberlin.cit.test.twittersentiment.record.TopicMapRecord;
 import de.tuberlin.cit.test.twittersentiment.record.TweetRecord;
-import de.tuberlin.cit.test.twittersentiment.task.*;
+import de.tuberlin.cit.test.twittersentiment.task.CoFilterTask;
+import de.tuberlin.cit.test.twittersentiment.task.HashtagExtractorTask;
+import de.tuberlin.cit.test.twittersentiment.task.HotTopicsMergerTask;
+import de.tuberlin.cit.test.twittersentiment.task.HotTopicsRecognitionTask;
+import de.tuberlin.cit.test.twittersentiment.task.MapToOneTask;
+import de.tuberlin.cit.test.twittersentiment.task.SentimentAnalysisTask;
+import de.tuberlin.cit.test.twittersentiment.task.TopHashTagsMapper;
 import de.tuberlin.cit.test.twittersentiment.util.LoadPhaseTweetSource;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -57,7 +63,7 @@ public class TwitterSentimentJobFlink {
 		int topTopicsWindow = HotTopicsRecognitionTask.DEFAULT_TIMEOUT;
 		int topTopicsTimeout = HotTopicsMergerTask.DEFAULT_TIMEOUT;
 
-        // set up the execution environment
+		// set up the execution environment
 		final StreamExecutionEnvironment env = setupEnv(jmHost, jmPort);
 		env.setBufferTimeout(10);
 
@@ -65,13 +71,13 @@ public class TwitterSentimentJobFlink {
 
 		dumpStatistics(tweetStream, "Input: %d tweets per second.", Time.of(1, TimeUnit.SECONDS)).printToErr();
 
-        WindowedDataStream<TopicMapRecord> topTweets = tweetStream
-                .flatMap(new HashtagExtractorTask()) // tweet -> [(hashtag, 1), (hashtag, 1), ...]
-                .window(Time.of(topTopicsWindow, TimeUnit.MILLISECONDS))
+		WindowedDataStream<TopicMapRecord> topTweets = tweetStream
+				.flatMap(new HashtagExtractorTask()) // tweet -> [(hashtag, 1), (hashtag, 1), ...]
+				.window(Time.of(topTopicsWindow, TimeUnit.MILLISECONDS))
 				.every(Time.of(topTopicsTimeout, TimeUnit.MILLISECONDS))
-                .groupBy("tag")
-                .sum("count")
-                .mapWindow(new TopHashTagsMapper(topCount));
+				.groupBy("tag")
+				.sum("count")
+				.mapWindow(new TopHashTagsMapper(topCount));
 		// topTweets.flatten().printToErr();
 
 		DataStream<Tuple3<Long, String, StringValue>> analyzedTweets = topTweets.flatten()
@@ -79,12 +85,12 @@ public class TwitterSentimentJobFlink {
 				.connect(tweetStream)
 				.flatMap(new CoFilterTask())
 				.map(new SentimentAnalysisTask());
-        analyzedTweets.writeAsText(outputPath).setParallelism(1);
+		analyzedTweets.writeAsText(outputPath).setParallelism(1);
 
 		dumpStatistics(analyzedTweets, "Output: %d tweets per second.", Time.of(1, TimeUnit.SECONDS)).printToErr();
 
-        env.execute("TwitterSentimentJob");
-    }
+		env.execute("TwitterSentimentJob");
+	}
 
 	private static StreamExecutionEnvironment setupEnv(String jmHost, int jmPort) throws Exception {
 		if (jmHost.equalsIgnoreCase("local")) {
@@ -116,7 +122,7 @@ public class TwitterSentimentJobFlink {
 
 	private static <T> DataStream<String> dumpStatistics(DataStream<T> stream, final String outputText, WindowingHelper windowPolicy) {
 		return stream.map(new MapToOneTask<T>())
-				.window(windowPolicy).sum().flatten()
+				.window(windowPolicy).sum(0).flatten()
 				.map(new MapFunction<Long, String>() {
 					@Override
 					public String map(Long value) throws Exception {

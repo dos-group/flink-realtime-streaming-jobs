@@ -7,17 +7,17 @@ import org.apache.sling.commons.json.JSONArray;
 
 public class TweetParserTask extends JSONParseFlatMap<String, TweetRecord> {
 
-    @Override
-    public void flatMap(String value, Collector<TweetRecord> out) throws Exception {
-        TweetRecord tweet = new TweetRecord(
-            getLong(value, "id"), getString(value, "text"), getString(value, "created_at")
-        );
+	@Override
+	public void flatMap(String value, Collector<TweetRecord> out) throws Exception {
+		TweetRecord tweet = new TweetRecord(
+				getLong(value, "id"), getString(value, "text"), getString(value, "created_at")
+		);
 
-        JSONArray tags = (JSONArray) get(value, "entities.hashtags");
-        for (int i = 0; i < tags.length(); i++) {
-            tweet.addHashtag(tags.getJSONObject(i).getString("text"));
-        }
+		JSONArray tags = (JSONArray) get(value, "entities.hashtags");
+		for (int i = 0; i < tags.length(); i++) {
+			tweet.addHashtag(tags.getJSONObject(i).getString("text"));
+		}
 
-        out.collect(tweet);
-    }
+		out.collect(tweet);
+	}
 }

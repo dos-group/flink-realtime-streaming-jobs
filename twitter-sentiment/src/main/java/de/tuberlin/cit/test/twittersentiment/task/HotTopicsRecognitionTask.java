@@ -10,7 +10,15 @@ import org.apache.flink.types.IntValue;
 import org.apache.flink.types.StringValue;
 import org.apache.flink.util.Collector;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 public class HotTopicsRecognitionTask extends RichFlatMapFunction<TweetRecord, TopicMapRecord> {
 	public static final String HISTORY_SIZE = "hottopicsrecognition.historysize";
@@ -27,27 +35,27 @@ public class HotTopicsRecognitionTask extends RichFlatMapFunction<TweetRecord, T
 	private int topCount;
 	private int historySize;
 	private int historyWarmupCount = 0;
-    private ObjectMapper objectMapper;
+	private ObjectMapper objectMapper;
 
-    public HotTopicsRecognitionTask(int topCount, int historySize, int timeout) {
-        this.topCount = topCount;
-        this.historySize = historySize;
-        this.timeout = timeout;
-    }
+	public HotTopicsRecognitionTask(int topCount, int historySize, int timeout) {
+		this.topCount = topCount;
+		this.historySize = historySize;
+		this.timeout = timeout;
+	}
 
 	public HotTopicsRecognitionTask(int topCount, int historySize) {
 		this(topCount, historySize, DEFAULT_TIMEOUT);
 	}
 
 	public HotTopicsRecognitionTask() {
-        this(DEFAULT_TOP_COUNT, DEFAULT_HISTORY_SIZE, DEFAULT_TIMEOUT);
-    }
+		this(DEFAULT_TOP_COUNT, DEFAULT_HISTORY_SIZE, DEFAULT_TIMEOUT);
+	}
 
-    @Override
+	@Override
 	public void open(Configuration parameters) {
-        objectMapper = new ObjectMapper();
-    	hashtagHistory = new ArrayDeque<>(historySize);
-		hashtagCount  = new HashMap<>(topCount);
+		objectMapper = new ObjectMapper();
+		hashtagHistory = new ArrayDeque<>(historySize);
+		hashtagCount = new HashMap<>(topCount);
 
 		// fill dummy history
 		List<StringValue> dummy = new ArrayList<>();
@@ -56,8 +64,8 @@ public class HotTopicsRecognitionTask extends RichFlatMapFunction<TweetRecord, T
 		}
 	}
 
-    @Override
-    public void flatMap(TweetRecord tweet, Collector<TopicMapRecord> out) throws Exception {
+	@Override
+	public void flatMap(TweetRecord tweet, Collector<TopicMapRecord> out) throws Exception {
 		List<StringValue> hashtags = tweet.getHashtags();
 
 		if (hashtags.size() != 0) {
@@ -101,12 +109,12 @@ public class HotTopicsRecognitionTask extends RichFlatMapFunction<TweetRecord, T
 						}
 					});
 
-            TopicMapRecord topicMap = new TopicMapRecord();
-            Iterator<Map.Entry<StringValue, Integer>> iterator = sortedHashtagCount.entrySet().iterator();
-            for (int i = 0; i < topCount && iterator.hasNext(); i++) {
-                Map.Entry<StringValue, Integer> entry = iterator.next();
-                topicMap.put(entry.getKey(), new IntValue(entry.getValue()));
-            }
+			TopicMapRecord topicMap = new TopicMapRecord();
+			Iterator<Map.Entry<StringValue, Integer>> iterator = sortedHashtagCount.entrySet().iterator();
+			for (int i = 0; i < topCount && iterator.hasNext(); i++) {
+				Map.Entry<StringValue, Integer> entry = iterator.next();
+				topicMap.put(entry.getKey(), new IntValue(entry.getValue()));
+			}
 			out.collect(topicMap);
 
 			lastSent = now;

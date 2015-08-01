@@ -48,7 +48,6 @@ public class TwitterSentimentJobProfile implements Serializable {
 	}
 
 
-
 	public static class LoadGenerationProfile implements Serializable {
 
 		public final String name;
@@ -127,7 +126,7 @@ public class TwitterSentimentJobProfile implements Serializable {
 	public final static HashMap<String, TwitterSentimentJobProfile> PROFILES = new HashMap<>();
 
 
-	public final static TwitterSentimentJobProfile WALLY50  = new TwitterSentimentJobProfile(
+	public final static TwitterSentimentJobProfile WALLY50 = new TwitterSentimentJobProfile(
 			"wally50", ParallelismProfile.WALLY50_PARA_PROFILE, LoadGenerationProfile.WALLY_LOAD_PROFILE);
 
 	public final static TwitterSentimentJobProfile LOCAL_DUALCORE = new TwitterSentimentJobProfile(

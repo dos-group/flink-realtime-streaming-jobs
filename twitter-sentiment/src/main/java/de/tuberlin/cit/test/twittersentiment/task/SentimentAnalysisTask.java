@@ -10,17 +10,17 @@ import org.apache.flink.types.StringValue;
 
 public class SentimentAnalysisTask extends RichMapFunction<TweetRecord, Tuple3<Long, String, StringValue>> {
 	private SentimentClassifier sentimentClassifier;
-    private ObjectMapper objectMapper;
+	private ObjectMapper objectMapper;
 
-    @Override
-    public void open(Configuration parameters) throws Exception {
-        this.sentimentClassifier = new SentimentClassifier();
-        this.objectMapper = new ObjectMapper();
-    }
+	@Override
+	public void open(Configuration parameters) throws Exception {
+		this.sentimentClassifier = new SentimentClassifier();
+		this.objectMapper = new ObjectMapper();
+	}
 
-    @Override
-    public Tuple3 map(TweetRecord tweet) throws Exception {
-        String sentiment = sentimentClassifier.classify(tweet.getText().getValue());
-        return new Tuple3<>(tweet.getId(), sentiment, tweet.getText());
-    }
+	@Override
+	public Tuple3 map(TweetRecord tweet) throws Exception {
+		String sentiment = sentimentClassifier.classify(tweet.getText().getValue());
+		return new Tuple3<>(tweet.getId(), sentiment, tweet.getText());
+	}
 }

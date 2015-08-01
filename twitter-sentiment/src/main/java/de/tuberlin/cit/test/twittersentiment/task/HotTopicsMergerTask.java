@@ -8,7 +8,13 @@ import org.apache.flink.types.MapValue;
 import org.apache.flink.types.StringValue;
 import org.apache.flink.util.Collector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class HotTopicsMergerTask implements FlatMapFunction<TopicMapRecord, TopicMapRecord> {
 	public static final String TIMEOUT = "topicsmerger.timeout";
@@ -17,16 +23,16 @@ public class HotTopicsMergerTask implements FlatMapFunction<TopicMapRecord, Topi
 	private int timeout;
 	private List<TopicMapRecord> topicLists = new ArrayList<>();
 
-    public HotTopicsMergerTask(int timeout) {
-        this.timeout = timeout;
-    }
+	public HotTopicsMergerTask(int timeout) {
+		this.timeout = timeout;
+	}
 
-    public HotTopicsMergerTask() {
-        this(DEFAULT_TIMEOUT);
-    }
+	public HotTopicsMergerTask() {
+		this(DEFAULT_TIMEOUT);
+	}
 
-    @Override
-    public void flatMap(TopicMapRecord record, Collector<TopicMapRecord> out) throws Exception {
+	@Override
+	public void flatMap(TopicMapRecord record, Collector<TopicMapRecord> out) throws Exception {
 		topicLists.add(record);
 
 		Date now = new Date();
@@ -66,12 +72,12 @@ public class HotTopicsMergerTask implements FlatMapFunction<TopicMapRecord, Topi
 					}
 				});
 
-        return (TopicMapRecord) Utils.slice(averageTopicList, new TopicMapRecord(), topCount);
+		return (TopicMapRecord) Utils.slice(averageTopicList, new TopicMapRecord(), topCount);
 	}
 
 	private void printRanking(TopicMapRecord sortedHashtagCount) {
 		System.out.println();
-		System.out.println("Average Hashtag Ranking (from " + topicLists.size() +  " topic lists)");
+		System.out.println("Average Hashtag Ranking (from " + topicLists.size() + " topic lists)");
 		for (MapValue.Entry<StringValue, IntValue> stringIntegerEntry : sortedHashtagCount.entrySet()) {
 			System.out.printf("%s (%d)\n", stringIntegerEntry.getKey(), stringIntegerEntry.getValue().getValue());
 		}

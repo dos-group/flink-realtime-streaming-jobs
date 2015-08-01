@@ -3,7 +3,15 @@ package de.tuberlin.cit.test.twittersentiment;
 import de.tuberlin.cit.test.twittersentiment.profile.TwitterSentimentJobProfile;
 import de.tuberlin.cit.test.twittersentiment.record.TopicMapRecord;
 import de.tuberlin.cit.test.twittersentiment.record.TweetRecord;
-import de.tuberlin.cit.test.twittersentiment.task.*;
+import de.tuberlin.cit.test.twittersentiment.task.CoFilterTask;
+import de.tuberlin.cit.test.twittersentiment.task.DelayTask;
+import de.tuberlin.cit.test.twittersentiment.task.HashtagExtractorTask;
+import de.tuberlin.cit.test.twittersentiment.task.HotTopicsMergerTask;
+import de.tuberlin.cit.test.twittersentiment.task.HotTopicsRecognitionTask;
+import de.tuberlin.cit.test.twittersentiment.task.MapToOneTask;
+import de.tuberlin.cit.test.twittersentiment.task.SentimentAnalysisTask;
+import de.tuberlin.cit.test.twittersentiment.task.TopHashTagsMapper;
+import de.tuberlin.cit.test.twittersentiment.task.TweetParserTask;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -55,18 +63,18 @@ public class TwitterSentimentJobTest {
 		int topTopicsWindow = HotTopicsRecognitionTask.DEFAULT_TIMEOUT;
 		int topTopicsTimeout = HotTopicsMergerTask.DEFAULT_TIMEOUT;
 
-        // set up the execution environment
+		// set up the execution environment
 		final StreamExecutionEnvironment env = setupEnv(jmHost, jmPort);
 		env.setBufferTimeout(10);
 
-        // get input data
-        DataStream<TweetRecord> tweetStream = env.readTextFile("test-data/tweets-en-2014-07-25-with_hashtag-500.json")
+		// get input data
+		DataStream<TweetRecord> tweetStream = env.readTextFile("test-data/tweets-en-2014-07-25-with_hashtag-500.json")
 				.flatMap(new TweetParserTask())
 				.map(new DelayTask<TweetRecord>(10)); // delay tweets by 10ms per tweet
 
 		// dumpStatistics(tweetStream, "Input: %d tweets per second.", Time.of(1, TimeUnit.SECONDS)).printToErr();
 
-        /*** Flink Window Version ***/
+		/*** Flink Window Version ***/
 		// calculate top 10
 		WindowedDataStream<TopicMapRecord> topTweets = tweetStream
 				.flatMap(new HashtagExtractorTask()) // tweet -> [(hashtag, 1), (hashtag, 1), ...]
@@ -96,8 +104,8 @@ public class TwitterSentimentJobTest {
 
 		// dumpStatistics(analyzedTweets, "Output: %d tweets per second.", Time.of(1, TimeUnit.SECONDS)).printToErr();
 
-        env.execute("TwitterSentimentJob");
-    }
+		env.execute("TwitterSentimentJob");
+	}
 
 	private static StreamExecutionEnvironment setupEnv(String jmHost, int jmPort) throws Exception {
 		if (jmHost.equalsIgnoreCase("local")) {
@@ -129,7 +137,7 @@ public class TwitterSentimentJobTest {
 
 	private static <T> DataStream<String> dumpStatistics(DataStream<T> stream, final String outputText, WindowingHelper windowPolicy) {
 		return stream.map(new MapToOneTask<T>())
-				.window(windowPolicy).sum().flatten()
+				.window(windowPolicy).sum(0).flatten()
 				.map(new MapFunction<Long, String>() {
 					@Override
 					public String map(Long value) throws Exception {

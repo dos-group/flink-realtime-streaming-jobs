@@ -7,10 +7,10 @@ import org.apache.flink.types.StringValue;
 import org.apache.flink.util.Collector;
 
 public class HashtagExtractorTask implements FlatMapFunction<TweetRecord, HashtagCountRecord> {
-    @Override
-    public void flatMap(TweetRecord tweet, Collector<HashtagCountRecord> out) throws Exception {
-        for (StringValue hashtag : tweet.getHashtags()) {
-            out.collect(new HashtagCountRecord(hashtag, 1));
-        }
-    }
+	@Override
+	public void flatMap(TweetRecord tweet, Collector<HashtagCountRecord> out) throws Exception {
+		for (StringValue hashtag : tweet.getHashtags()) {
+			out.collect(new HashtagCountRecord(hashtag, 1));
+		}
+	}
 }

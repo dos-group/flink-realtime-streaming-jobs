@@ -13,9 +13,11 @@ public class UnlimitedTweetSource extends TweetSource {
 	private static final Logger LOG = LoggerFactory.getLogger(UnlimitedTweetSource.class);
 	private static final long LOG_STATS = 10 * 1000; // log stats every 10s
 
-	/** Wait ...ms for input or finish (return null as tweet). */
+	/**
+	 * Wait ...ms for input or finish (return null as tweet).
+	 */
 	public static final String INPUT_TIMEOUT_KEY = "unlimitedTweetSource.inputTimeout";
-	public static final long DEFAULT_INPUT_TIMEOUT = 2*60*1000; // 2min
+	public static final long DEFAULT_INPUT_TIMEOUT = 2 * 60 * 1000; // 2min
 	private final long inputTimeout;
 
 	private int tweetsEmitted;
@@ -24,22 +26,22 @@ public class UnlimitedTweetSource extends TweetSource {
 
 	public UnlimitedTweetSource(int port, long inputTimeout) {
 		super(port);
-        this.inputTimeout = inputTimeout;
+		this.inputTimeout = inputTimeout;
 	}
 
-    public UnlimitedTweetSource() {
-        this(DEFAULT_TCP_SERVER_PORT, DEFAULT_INPUT_TIMEOUT);
-    }
+	public UnlimitedTweetSource() {
+		this(DEFAULT_TCP_SERVER_PORT, DEFAULT_INPUT_TIMEOUT);
+	}
 
-    @Override
-    public void open(Configuration parameters) throws Exception {
-        super.open(parameters);
-        this.tweetsEmitted = 0;
-        this.lastStatisticLogged = System.currentTimeMillis();
+	@Override
+	public void open(Configuration parameters) throws Exception {
+		super.open(parameters);
+		this.tweetsEmitted = 0;
+		this.lastStatisticLogged = System.currentTimeMillis();
 //        this.inputTimeout = parameters.getLong(INPUT_TIMEOUT_KEY, DEFAULT_INPUT_TIMEOUT);
-    }
+	}
 
-    @Override
+	@Override
 	public TweetRecord getTweet() throws InterruptedException, IOException {
 
 		long now = System.currentTimeMillis();

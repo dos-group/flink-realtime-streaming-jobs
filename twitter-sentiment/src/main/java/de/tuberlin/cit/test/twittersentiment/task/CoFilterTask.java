@@ -2,7 +2,7 @@ package de.tuberlin.cit.test.twittersentiment.task;
 
 import de.tuberlin.cit.test.twittersentiment.record.TopicMapRecord;
 import de.tuberlin.cit.test.twittersentiment.record.TweetRecord;
-import org.apache.flink.streaming.api.function.co.CoFlatMapFunction;
+import org.apache.flink.streaming.api.functions.co.CoFlatMapFunction;
 import org.apache.flink.types.StringValue;
 import org.apache.flink.util.Collector;
 

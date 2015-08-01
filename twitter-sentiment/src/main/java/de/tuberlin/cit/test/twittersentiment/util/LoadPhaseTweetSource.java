@@ -37,28 +37,28 @@ public class LoadPhaseTweetSource extends TweetSource {
 
 	private int sleepTime = 0;
 
-    public LoadPhaseTweetSource(int port, String profileName) {
-        super(port);
-        this.profile = TwitterSentimentJobProfile.PROFILES.get(profileName).loadGenProfile;
-    }
+	public LoadPhaseTweetSource(int port, String profileName) {
+		super(port);
+		this.profile = TwitterSentimentJobProfile.PROFILES.get(profileName).loadGenProfile;
+	}
 
 	public LoadPhaseTweetSource(String profileName) {
 		this(DEFAULT_TCP_SERVER_PORT, profileName);
 	}
 
-    @Override
-    public void open(Configuration parameters) throws Exception {
-        super.open(parameters);
-        this.currPhase = LoadGenPhase.INITIAL_SLEEP;
-        this.currPhaseStep = 0;
-        this.currPhaseStepBeginTime = -1;
-        this.currPhaseStepEndTime = -1;
+	@Override
+	public void open(Configuration parameters) throws Exception {
+		super.open(parameters);
+		this.currPhase = LoadGenPhase.INITIAL_SLEEP;
+		this.currPhaseStep = 0;
+		this.currPhaseStepBeginTime = -1;
+		this.currPhaseStepEndTime = -1;
 
 //        String profileName = taskConfiguration.getString(PROFILE, null);
 //        this.profile = TwitterSentimentJobProfile.PROFILES.get(profileName).loadGenProfile;
-    }
+	}
 
-    @Override
+	@Override
 	public TweetRecord getTweet()
 			throws InterruptedException, IOException {
 
@@ -100,7 +100,7 @@ public class LoadPhaseTweetSource extends TweetSource {
 				break;
 			case INCREMENT:
 				currPhaseStep++;
-				if(currPhaseStep < currPhaseTotalSteps) {
+				if (currPhaseStep < currPhaseTotalSteps) {
 					initCurrIncrementStep();
 				} else {
 					initPlateauPhase();
@@ -111,7 +111,7 @@ public class LoadPhaseTweetSource extends TweetSource {
 				break;
 			case DECREMENT:
 				currPhaseStep++;
-				if(currPhaseStep < currPhaseTotalSteps) {
+				if (currPhaseStep < currPhaseTotalSteps) {
 					initCurrDecrementStep();
 				} else {
 					initCooldownPhase();
@@ -260,7 +260,7 @@ public class LoadPhaseTweetSource extends TweetSource {
 
 	@Override
 	public void close() throws Exception {
-        super.close();
+		super.close();
 		logStepStats(System.currentTimeMillis());
 	}
 }
