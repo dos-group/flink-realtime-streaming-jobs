@@ -13,6 +13,7 @@ import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.helper.WindowingHelper;
+import org.apache.flink.streaming.statistics.SamplingStrategy;
 import org.apache.flink.types.StringValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,17 +63,27 @@ public class TwitterSentimentJob {
 		// set up the execution environment
 		final StreamExecutionEnvironment env = setupEnv(jmHost, jmPort);
 		env.setBufferTimeout(10);
+		env.disableOperatorChaining();
 
 		DataStream<TweetRecord> tweetStream = env.addSource(new LoadPhaseTweetSource(profile.name));
 
 		// dumpStatistics(tweetStream, "Input: %d tweets per second.", Time.of(1, TimeUnit.SECONDS)).printToErr();
 
-		DataStream<Tuple3<Long, String, StringValue>> analyzedTweets = tweetStream
+		DataStream<Tuple3<Long, String, StringValue>> analyzedTweets =
+				tweetStream
+						.beginLatencyConstraint(210, "toplist")
+						.beginLatencyConstraint(30, "sentiment")
 				.flatMap(new HotTopicsRecognitionTask(topCount, historySize, topTopicsWindow))
-				.flatMap(new HotTopicsMergerTask(topTopicsTimeout)).setParallelism(1).broadcast()
+						.setSamplingStrategy(SamplingStrategy.READ_WRITE)
+				.flatMap(new HotTopicsMergerTask(topTopicsTimeout))
+						.setParallelism(1)
+						.setSamplingStrategy(SamplingStrategy.READ_WRITE)
+						.finishLatencyConstraint("toplist")
+				.broadcast()
 				.connect(tweetStream)
 				.flatMap(new CoFilterTask())
-				.map(new SentimentAnalysisTask());
+				.map(new SentimentAnalysisTask())
+						.finishLatencyConstraint("sentiment");
 		analyzedTweets.writeAsText(outputPath).setParallelism(1);
 
 		// dumpStatistics(analyzedTweets, "Output: %d tweets per second.", Time.of(1, TimeUnit.SECONDS)).printToErr();
