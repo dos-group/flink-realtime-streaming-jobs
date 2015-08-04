@@ -7,8 +7,8 @@
     <groupId>de.tuberlin.cit</groupId>
     <artifactId>twitter-sentiment</artifactId>
     <version>git</version>
-	<packaging>jar</packaging>
-	<name>twitter-sentiment</name>
+    <packaging>jar</packaging>
+    <name>twitter-sentiment</name>
 
     <repositories>
         <repository>
@@ -21,9 +21,9 @@
         </repository>
     </repositories>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
 
     <dependencies>
@@ -70,32 +70,32 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-			
-			<!-- Configure the jar plugin to add the main class as a manifest entry -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifestEntries>
-							<Main-Class>de.tuberlin.cit.test.twittersentiment.TwitterSentimentJob</Main-Class>
-						</manifestEntries>
-					</archive>
-				</configuration>
-			</plugin>
+
+            <!-- Configure the jar plugin to add the main class as a manifest entry -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Main-Class>de.tuberlin.cit.test.twittersentiment.TwitterSentimentJob</Main-Class>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.4.1</version>
                 <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-					<archive>
-						<manifest>
-							<mainClass>de.tuberlin.cit.test.twittersentiment.TwitterSentimentJob</mainClass>
-						</manifest>
-					</archive>
+                    <descriptors>
+                        <descriptor>src/assembly/flink-fat-jar.xml</descriptor>
+                    </descriptors>
+                    <archive>
+                        <manifest>
+                            <mainClass>de.tuberlin.cit.test.twittersentiment.TwitterSentimentJob</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
                 <executions>
                     <execution>

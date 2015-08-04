@@ -16,6 +16,11 @@ public class TwitterSentimentJobProfile implements Serializable {
 		public final TaskProfile filter;
 		public final TaskProfile sentiment;
 
+		public final static ParallelismProfile WALLY8_PARA_PROFILE = new ParallelismProfile(
+				"wally8_para",
+				new HotTopicsRecognitionProfile(10, 4, 10, 2, 1, 1000, 50),
+				new TaskProfile(10, 4, 10, 1, 1),
+				new TaskProfile(10, 4, 10, 1, 1));
 
 		public final static ParallelismProfile WALLY50_PARA_PROFILE = new ParallelismProfile(
 				"wally50_para",
@@ -125,6 +130,9 @@ public class TwitterSentimentJobProfile implements Serializable {
 
 	public final static HashMap<String, TwitterSentimentJobProfile> PROFILES = new HashMap<>();
 
+
+	public final static TwitterSentimentJobProfile WALLY8 = new TwitterSentimentJobProfile(
+			"wally8", ParallelismProfile.WALLY8_PARA_PROFILE, LoadGenerationProfile.WALLY_LOAD_PROFILE);
 
 	public final static TwitterSentimentJobProfile WALLY50 = new TwitterSentimentJobProfile(
 			"wally50", ParallelismProfile.WALLY50_PARA_PROFILE, LoadGenerationProfile.WALLY_LOAD_PROFILE);

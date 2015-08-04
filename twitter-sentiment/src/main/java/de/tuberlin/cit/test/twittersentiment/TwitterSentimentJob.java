@@ -10,15 +10,20 @@ import de.tuberlin.cit.test.twittersentiment.task.SentimentAnalysisTask;
 import de.tuberlin.cit.test.twittersentiment.util.LoadPhaseTweetSource;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.windowing.helper.WindowingHelper;
+import org.apache.flink.streaming.statistics.ConstraintUtil;
+import org.apache.flink.streaming.statistics.JobGraphLatencyConstraint;
 import org.apache.flink.streaming.statistics.SamplingStrategy;
 import org.apache.flink.types.StringValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Manual window version.
@@ -74,6 +79,11 @@ public class TwitterSentimentJob {
 						.beginLatencyConstraint(210, "toplist")
 						.beginLatencyConstraint(30, "sentiment")
 				.flatMap(new HotTopicsRecognitionTask(topCount, historySize, topTopicsWindow))
+						.setElasticNumberOfSubtasks(
+								profile.paraProfile.hotTopicsRecognition.minimumAmountSubtasks,
+								profile.paraProfile.hotTopicsRecognition.maximumAmountSubtasks,
+								profile.paraProfile.hotTopicsRecognition.initalAmountSubtasks)
+						.setParallelism(profile.paraProfile.hotTopicsRecognition.amountSubstasks)
 						.setSamplingStrategy(SamplingStrategy.READ_WRITE)
 				.flatMap(new HotTopicsMergerTask(topTopicsTimeout))
 						.setParallelism(1)
@@ -82,11 +92,35 @@ public class TwitterSentimentJob {
 				.broadcast()
 				.connect(tweetStream)
 				.flatMap(new CoFilterTask())
+						.setElasticNumberOfSubtasks(
+								profile.paraProfile.filter.minimumAmountSubtasks,
+								profile.paraProfile.filter.maximumAmountSubtasks,
+								profile.paraProfile.filter.initalAmountSubtasks)
+						.setParallelism(profile.paraProfile.filter.amountSubstasks)
 				.map(new SentimentAnalysisTask())
+						.setElasticNumberOfSubtasks(
+								profile.paraProfile.sentiment.minimumAmountSubtasks,
+								profile.paraProfile.sentiment.maximumAmountSubtasks,
+								profile.paraProfile.sentiment.initalAmountSubtasks)
+						.setParallelism(profile.paraProfile.sentiment.amountSubstasks)
 						.finishLatencyConstraint("sentiment");
-		analyzedTweets.writeAsText(outputPath).setParallelism(1);
+		analyzedTweets.addSink(new SinkFunction<Tuple3<Long, String, StringValue>>() {
+			@Override
+			public void invoke(Tuple3<Long, String, StringValue> value) throws Exception {
+
+			}
+		}).setParallelism(1);
 
 		// dumpStatistics(analyzedTweets, "Output: %d tweets per second.", Time.of(1, TimeUnit.SECONDS)).printToErr();
+
+		Configuration conf = env.getStreamGraph().getJobGraph().getJobConfiguration();
+		List<JobGraphLatencyConstraint> constraints = ConstraintUtil.getConstraints(conf);
+		System.out.println("Constraints: " + constraints.size());
+		System.out.println();
+		for (JobGraphLatencyConstraint constraint : constraints) {
+			System.out.printf("%s, %dms\n%s\n\n", constraint.getName(), constraint.getLatencyConstraintInMillis(),
+					constraint.getSequence().toString());
+		}
 
 		env.execute("TwitterSentimentJob");
 	}
